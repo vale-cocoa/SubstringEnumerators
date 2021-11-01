@@ -1,3 +1,4 @@
 # SubstringEnumerators
 
-A description of this package.
+Enumerate substring occurencies in a string.
+

@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <title>Add resources to Swift packages</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+  <link rel="canonical" href="https://useyourloaf.com/blog/add-resources-to-swift-packages/">
+  <link rel="alternate" type="application/rss+xml" href="https://useyourloaf.com/blog/rss.xml" title="Use Your Loaf - iOS Development News & Tips">
+<meta name="description" content="Starting with Xcode 12, you can add more than just source code to your Swift packages."/>
+<meta name="keywords" content="iOS, Xcode, Swift, Auto Layout, Objective-C, WWDC">
+<meta name="author" content="Keith Harrison">
+<meta property="og:title" content="Add resources to Swift packages" />
+<meta property="og:description" content="Starting with Xcode 12, you can add more than just source code to your Swift packages." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://useyourloaf.com/blog/add-resources-to-swift-packages/" /><meta property="og:image" content="https://useyourloaf.com/blog/add-resources-to-swift-packages/cover.png"/><meta property="article:section" content="blog" />
+<meta property="article:published_time" content="2020-07-20T10:09:29+01:00" />
+<meta property="article:modified_time" content="2021-07-16T11:12:10+01:00" /><meta property="og:site_name" content="Use Your Loaf" />
+
+<meta name="google-site-verification" content="BLKu-0HIlRn9hJNi1Y_Puf8L5wz7KIW8OEVQDtN7Sco" />
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://useyourloaf.com/blog/add-resources-to-swift-packages/cover.png"/>
+<meta name="twitter:title" content="Add resources to Swift packages"/>
+<meta name="twitter:description" content="Starting with Xcode 12, you can add more than just source code to your Swift packages."/>
+
+<link rel="stylesheet" href="/stylesheets/screen.css?v=58"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+<link rel="manifest" href="/site.webmanifest">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#1a5d8d">
+<meta name="msapplication-TileColor" content="#2b5797">
+<meta name="theme-color" content="#ffffff">
+<script src="https://kit.fontawesome.com/d42e8ec55c.js" crossorigin="anonymous"></script>
+<script async src="https://f.convertkit.com/ckjs/ck.5.js"></script>
+</head>
+<body><header class="main-nav">
+<a class="title" href="/">Use Your Loaf</a>
+<nav>
+<ul>
+
+
+  <li class=""><a href="/blog/">Articles</a></li>
+
+  <li class=""><a href="/autolayout/">Modern Auto Layout</a></li>
+
+  <li class=""><a href="/newsletter/">Newsletter</a></li>
+
+</ul>
+</nav>
+</header>
+<section class="banner">
+<div class="announce"></div>
+</section>
+<main>
+<article class="single-col post">
+<h2>Add resources to Swift packages</h2>
+<div class="article-meta">
+Jul 20, 2020 &middot; 5 minute read<br />
+
+  <ul class="categories">
+  <li><a class="label" href="/categories/xcode-12">Xcode 12</a></li><li><a class="label" href="/categories/swift">Swift</a></li><li><a class="label" href="/categories/spm">SPM</a></li>
+  </ul>
+
+</div>
+<div class="article-content">
+<p>Xcode 11 added support for the Swift Package Manager but it limited you to source code. In Xcode 12 you can add resources including things like asset catalogs, storyboards, Core Data models and more.</p>
+<h3 id="adding-resources-to-packages">Adding Resources To Packages</h3>
+<p>The Swift Package Manager (SPM) allows you to share code between projects or even between targets within a project. For a recap see this earlier post on <a href="/blog/creating-swift-packages-in-xcode/">Creating Swift Packages in Xcode</a>.</p>
+<p>Starting with Xcode 12 you can also include non-source files in a package.  Apple recommends you create a Resources folder under the Sources folder but it&rsquo;s not required. Xcode knows how to handle common Apple resource types out-of-the box. These include (not an exhaustive list):</p>
+<ul>
+<li>Asset Catalogs (.xcassets)</li>
+<li>Storyboards and NIBs (.storyboard, .xib, .nib)</li>
+<li>Core Data models (.xcdatamodel, xcmappingmodel)</li>
+<li>Localization folders (.lproj)</li>
+</ul>
+<p>If you include a file type that Xcode doesn&rsquo;t recognize as a resource you&rsquo;ll get a build error telling you to declare it in the package manifest file (<code>Package.swift</code>):</p>
+<blockquote>
+<p>found 1 file(s) which are unhandled; explicitly declare them as resources or exclude from the target</p>
+</blockquote>
+<p>You declare resources as part of the target definition. For example, here&rsquo;s my package with a target named <code>Shared</code> under the <code>Sources</code> folder:</p>
+<p><img src="/blog/add-resources-to-swift-packages/100.png" alt="Xcode navigator showing example of a Resources folder"
+width="220" height="265" srcset="/blog/add-resources-to-swift-packages/100@2x.png 2x"/></p>
+<p>The swift files and asset catalog are fine but you must declare the contents of the HTML folder and the config.json file as resources for the target in the package manifest:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-swift" data-lang="swift"><span class="n">targets</span><span class="p">:</span> <span class="p">[</span>
+  <span class="p">.</span><span class="n">target</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">:</span> <span class="s">&#34;Shared&#34;</span><span class="p">,</span>
+    <span class="n">resources</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">.</span><span class="n">process</span><span class="p">(</span><span class="s">&#34;Resources/config.json&#34;</span><span class="p">),</span>
+      <span class="p">.</span><span class="n">copy</span><span class="p">(</span><span class="s">&#34;Resources/HTML&#34;</span><span class="p">)</span>
+    <span class="p">]</span>
+  <span class="p">)</span>
+<span class="p">]</span>
+</code></pre></div><p>There are two ways to declare a resource:</p>
+<ol>
+<li>
+<p>A process rule: Applies platform specific rules to the resource such as compressing png files. If there are no specific rules for a resource the file is copied to the top-level directory of the bundle. You can specify a directory to have Xcode process the contents. The directory structure is not preserved.</p>
+</li>
+<li>
+<p>A copy rule:  Copies files untouched. If you pass a directory the contents are copied preserving the sub-directory structure.</p>
+</li>
+</ol>
+<p>In my example I&rsquo;m using a process rule for the JSON file and copying the HTML folder. The resulting package bundle looks like this (note the HTML folder is preserved):</p>
+<p><img src="/blog/add-resources-to-swift-packages/101.png" alt="Package directory showing the HTML folder is preserved"
+width="220" height="140" srcset="/blog/add-resources-to-swift-packages/101@2x.png 2x"/></p>
+<p>Xcode doesn&rsquo;t do anything special for JSON files so I could have used a copy rule. If we didn&rsquo;t care about the directory structure we could have also used a single process rule on the Resources directory:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-swift" data-lang="swift"><span class="n">targets</span><span class="p">:</span> <span class="p">[</span>
+  <span class="p">.</span><span class="n">target</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">:</span> <span class="s">&#34;Shared&#34;</span><span class="p">,</span>
+    <span class="n">resources</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">.</span><span class="n">process</span><span class="p">(</span><span class="s">&#34;Resources&#34;</span><span class="p">)</span>
+    <span class="p">]</span>
+  <span class="p">)</span>
+<span class="p">]</span>
+</code></pre></div><p>Since there are no special rules for any of these resource types this copies everything to the top-level directory of the package bundle:</p>
+<p><img src="/blog/add-resources-to-swift-packages/102.png" alt="Package directory showing the HTML folder is NOT preserved"
+width="220" height="120" srcset="/blog/add-resources-to-swift-packages/102@2x.png 2x"/></p>
+<p>This is also useful for test data:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-swift" data-lang="swift">  <span class="p">.</span><span class="n">testTarget</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">:</span> <span class="s">&#34;SharedTests&#34;</span><span class="p">,</span>
+    <span class="n">dependencies</span><span class="p">:</span> <span class="p">[</span><span class="s">&#34;Shared&#34;</span><span class="p">],</span>
+    <span class="n">resources</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">.</span><span class="n">process</span><span class="p">(</span><span class="s">&#34;TestData&#34;</span><span class="p">)</span>
+    <span class="p">]</span>
+  <span class="p">)</span>
+</code></pre></div><h3 id="minimum-tools-version">Minimum Tools Version</h3>
+<p>One word of caution. Swift Package Manager support for resources depends on Swift 5.3 shipping with Xcode 12. If you create a new package with Xcode 12 you&rsquo;ll see this in the first line of the package manifest file:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-swift" data-lang="swift"><span class="c1">// swift-tools-version:5.3</span>
+</code></pre></div><p>If you want to create a package that you can use with older versions of Xcode you&rsquo;ll need to specify a version of Swift supported by that version of Xcode (and avoid using resources):</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-swift" data-lang="swift"><span class="c1">// swift-tools-version:5.5   -- Xcode 13.0</span>
+<span class="c1">// swift-tools-version:5.4   -- Xcode 12.5</span>
+<span class="c1">// swift-tools-version:5.3   -- Xcode 12.0</span>
+<span class="c1">// swift-tools-version:5.2.4 -- Xcode 11.5</span>
+<span class="c1">// swift-tools-version:5.2   -- Xcode 11.4</span>
+<span class="c1">// swift-tools-version:5.1   -- Xcode 11.0</span>
+</code></pre></div><p>If you created a package with an earlier version of Xcode it will work with Xcode 12 but you cannot add resources until you change the tool version in <code>Package.swift</code> to 5.3.</p>
+<h3 id="excluding-files">Excluding Files</h3>
+<p>If you have files in the <code>Sources</code> folder that you do <strong>NOT</strong> want copied into the package bundle you can exclude them from the target:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-swift" data-lang="swift"><span class="n">targets</span><span class="p">:</span> <span class="p">[</span>
+  <span class="p">.</span><span class="n">target</span><span class="p">(</span>
+    <span class="n">name</span><span class="p">:</span> <span class="s">&#34;Shared&#34;</span><span class="p">,</span>
+    <span class="n">exclude</span><span class="p">:</span> <span class="p">[</span><span class="s">&#34;Resources/TODO.md&#34;</span><span class="p">],</span>
+    <span class="n">resources</span><span class="p">:</span> <span class="p">[</span>
+      <span class="p">.</span><span class="n">process</span><span class="p">(</span><span class="s">&#34;Resources/config.json&#34;</span><span class="p">),</span>
+      <span class="p">.</span><span class="n">copy</span><span class="p">(</span><span class="s">&#34;Resources/HTML&#34;</span><span class="p">)</span>
+    <span class="p">]</span>
+  <span class="p">)</span>
+<span class="p">]</span>
+</code></pre></div><p>Note that the exclude must come before the resources. You can exclude a directory.</p>
+<h3 id="localizing-resources">Localizing Resources</h3>
+<p>To localize any resource in the package you must declare the default localization in the package manifest. For example, if my development language is English (&ldquo;en&rdquo;):</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-swift" data-lang="swift"><span class="kd">let</span> <span class="nv">package</span> <span class="p">=</span> <span class="n">Package</span><span class="p">(</span>
+  <span class="n">name</span><span class="p">:</span> <span class="s">&#34;Shared&#34;</span><span class="p">,</span>
+  <span class="n">defaultLocalization</span><span class="p">:</span> <span class="s">&#34;en&#34;</span><span class="p">,</span>
+</code></pre></div><p>Create the directories with the localized resources for the languages you are supporting. Follow the usual Xcode naming convention for <code>.lproj</code> directories using the ISO 639 language code. Don&rsquo;t forget to create the default <code>en.lproj</code> directory.</p>
+<p>If you are including localized storyboard or XIB files put them in the base localization directory <code>Base.lproj</code> and add the strings files to the language specific <code>.lproj</code> directories:</p>
+<p><img src="/blog/add-resources-to-swift-packages/103.png" alt="Adding localized files to the package"
+width="300" height="440" srcset="/blog/add-resources-to-swift-packages/103@2x.png 2x"/></p>
+<p>Remember that you can also <a href="/blog/flipping-and-localizing-image-assets/">localize image assets</a> in the asset catalog.</p>
+<h3 id="using-resources-from-a-package">Using Resources From A Package</h3>
+<p>The Swift Package Manager creates a static extension on <code>Bundle</code> for the package module. You access the resource by specifying <code>Bundle.module</code> as the bundle. Some examples:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-swift" data-lang="swift"><span class="c1">// SwiftUI load image from asset catalog</span>
+<span class="n">Image</span><span class="p">(</span><span class="s">&#34;Star&#34;</span><span class="p">,</span> <span class="n">bundle</span><span class="p">:</span> <span class="p">.</span><span class="n">module</span><span class="p">)</span>
+
+<span class="c1">// UIKit load image from asset catalog</span>
+<span class="kd">let</span> <span class="nv">image</span> <span class="p">=</span> <span class="n">UIImage</span><span class="p">(</span><span class="n">named</span><span class="p">:</span> <span class="s">&#34;Star&#34;</span><span class="p">,</span> <span class="k">in</span><span class="p">:</span> <span class="p">.</span><span class="n">module</span><span class="p">,</span> <span class="n">compatibleWith</span><span class="p">:</span> <span class="kc">nil</span><span class="p">)</span>
+
+<span class="c1">// Get URL of config.json</span>
+<span class="kd">let</span> <span class="nv">configURL</span> <span class="p">=</span> <span class="n">Bundle</span><span class="p">.</span><span class="n">module</span><span class="p">.</span><span class="n">url</span><span class="p">(</span><span class="n">forResource</span><span class="p">:</span> <span class="s">&#34;config&#34;</span><span class="p">,</span> <span class="n">withExtension</span><span class="p">:</span> <span class="s">&#34;json&#34;</span><span class="p">)</span>
+</code></pre></div><p>For localized resources:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-swift" data-lang="swift"><span class="c1">// Localized string</span>
+<span class="kd">let</span> <span class="nv">ratingTitle</span> <span class="p">=</span> <span class="n">NSLocalizedString</span><span class="p">(</span><span class="s">&#34;Rating&#34;</span><span class="p">,</span> <span class="n">bundle</span><span class="p">:</span> <span class="p">.</span><span class="n">module</span><span class="p">,</span> <span class="n">comment</span><span class="p">:</span> <span class="s">&#34;Rating title&#34;</span><span class="p">)</span>
+
+<span class="c1">// SwiftUI text view</span>
+<span class="n">Text</span><span class="p">(</span><span class="s">&#34;Rating&#34;</span><span class="p">,</span> <span class="n">bundle</span><span class="p">:</span> <span class="p">.</span><span class="n">module</span><span class="p">)</span>
+
+<span class="c1">// Storyboard</span>
+<span class="kd">let</span> <span class="nv">ratingStoryboard</span> <span class="p">=</span> <span class="n">UIStoryboard</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="s">&#34;Rating&#34;</span><span class="p">,</span> <span class="n">bundle</span><span class="p">:</span> <span class="p">.</span><span class="n">module</span><span class="p">)</span>
+</code></pre></div><p>Note that resources don&rsquo;t default to being accessible outside the package bundle. If you want to access a resource from outside the package module create a publicly visible property. For example, assuming I have a <code>SharedResource.swift</code> in the package:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-swift" data-lang="swift"><span class="c1">// SharedResource.swift</span>
+<span class="kd">import</span> <span class="nc">Foundation</span>
+
+<span class="kd">public</span> <span class="kd">enum</span> <span class="nc">SharedResource</span> <span class="p">{</span>
+    <span class="kd">static</span> <span class="kd">public</span> <span class="kd">let</span> <span class="nv">configURL</span> <span class="p">=</span> <span class="n">Bundle</span><span class="p">.</span><span class="n">module</span><span class="p">.</span><span class="n">url</span><span class="p">(</span><span class="n">forResource</span><span class="p">:</span> <span class="s">&#34;config&#34;</span><span class="p">,</span> <span class="n">withExtension</span><span class="p">:</span> <span class="s">&#34;json&#34;</span><span class="p">)</span>
+<span class="p">}</span>
+</code></pre></div><p>I can now access the URL for the JSON resource anywhere I import the <code>Shared</code> package:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-swift" data-lang="swift"><span class="kd">let</span> <span class="nv">url</span> <span class="p">=</span> <span class="n">SharedResource</span><span class="p">.</span><span class="n">configURL</span>
+</code></pre></div><h3 id="example-package-manifest">Example Package Manifest</h3>
+<p>A more complete example of a <code>Package.swift</code> file:</p>
+<div class="highlight"><pre tabindex="0" class="chroma"><code class="language-swift" data-lang="swift"><span class="c1">// swift-tools-version:5.3</span>
+<span class="c1">// The swift-tools-version declares the minimum version of Swift required to build this package.</span>
+
+<span class="kd">import</span> <span class="nc">PackageDescription</span>
+
+<span class="kd">let</span> <span class="nv">package</span> <span class="p">=</span> <span class="n">Package</span><span class="p">(</span>
+  <span class="n">name</span><span class="p">:</span> <span class="s">&#34;Shared&#34;</span><span class="p">,</span>
+  <span class="n">defaultLocalization</span><span class="p">:</span> <span class="s">&#34;en&#34;</span><span class="p">,</span>
+  <span class="n">platforms</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">.</span><span class="n">iOS</span><span class="p">(.</span><span class="n">v13</span><span class="p">)</span>
+  <span class="p">],</span>
+  <span class="n">products</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">.</span><span class="n">library</span><span class="p">(</span>
+      <span class="n">name</span><span class="p">:</span> <span class="s">&#34;Shared&#34;</span><span class="p">,</span>
+      <span class="n">targets</span><span class="p">:</span> <span class="p">[</span><span class="s">&#34;Shared&#34;</span><span class="p">]),</span>
+  <span class="p">],</span>
+  <span class="n">dependencies</span><span class="p">:</span> <span class="p">[</span>
+  <span class="p">],</span>
+  <span class="n">targets</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">.</span><span class="n">target</span><span class="p">(</span>
+      <span class="n">name</span><span class="p">:</span> <span class="s">&#34;Shared&#34;</span><span class="p">,</span>
+      <span class="n">exclude</span><span class="p">:</span> <span class="p">[</span><span class="s">&#34;Resources/TODO.md&#34;</span><span class="p">],</span>
+      <span class="n">resources</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">.</span><span class="n">process</span><span class="p">(</span><span class="s">&#34;Resources/config.json&#34;</span><span class="p">),</span>
+        <span class="p">.</span><span class="n">copy</span><span class="p">(</span><span class="s">&#34;Resources/HTML&#34;</span><span class="p">)</span>
+      <span class="p">]</span>
+    <span class="p">),</span>
+    <span class="p">.</span><span class="n">testTarget</span><span class="p">(</span>
+      <span class="n">name</span><span class="p">:</span> <span class="s">&#34;SharedTests&#34;</span><span class="p">,</span>
+      <span class="n">dependencies</span><span class="p">:</span> <span class="p">[</span><span class="s">&#34;Shared&#34;</span><span class="p">],</span>
+      <span class="n">resources</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">.</span><span class="n">process</span><span class="p">(</span><span class="s">&#34;TestData&#34;</span><span class="p">)</span>
+      <span class="p">]</span>
+    <span class="p">)</span>
+  <span class="p">]</span>
+<span class="p">)</span>
+</code></pre></div><h3 id="read-more">Read More</h3>
+<ul>
+<li><a href="/blog/creating-swift-packages-in-xcode/">Create Swift Packages in Xcode</a></li>
+<li><a href="/blog/editing-a-swift-package/">Editing A Swift Package</a></li>
+<li><a href="https://developer.apple.com/videos/play/wwdc2020/10169/">WWDC 2020 Swift packages: Resources and localization</a></li>
+</ul>
+</div>
+<div class="post-footer">
+
+  <form action="https://app.convertkit.com/forms/965373/subscriptions" class="seva-form formkit-form" method="post" data-sv-form="965373" data-uid="b0b8990eec" data-format="inline" data-version="5" data-options="{&quot;settings&quot;:{&quot;after_subscribe&quot;:{&quot;action&quot;:&quot;message&quot;,&quot;success_message&quot;:&quot;OK! Check your inbox for an email to confirm your subscription and download your free guide.&quot;,&quot;redirect_url&quot;:&quot;&quot;},&quot;modal&quot;:{&quot;trigger&quot;:null,&quot;scroll_percentage&quot;:null,&quot;timer&quot;:null,&quot;devices&quot;:null,&quot;show_once_every&quot;:null},&quot;recaptcha&quot;:{&quot;enabled&quot;:false},&quot;return_visitor&quot;:{&quot;custom_content&quot;:&quot;Thank-you for subscribing!&quot;,&quot;action&quot;:&quot;hide&quot;},&quot;slide_in&quot;:{&quot;display_in&quot;:null,&quot;trigger&quot;:null,&quot;scroll_percentage&quot;:null,&quot;timer&quot;:null,&quot;devices&quot;:null,&quot;show_once_every&quot;:null}}}" min-width="400 500 600 700 800">
+	<div data-style="full">
+		<div data-element="column" class="formkit-column">
+			<h1 class="formkit-header" data-element="header">Never Miss A Post</h1>
+			<div data-element="subheader" class="formkit-subheader">
+				<p>
+					Sign up to get my <strong>iOS posts and news</strong> direct to your inbox and I'll also send you a PDF of my <strong>WWDC 2021 Viewing Guide</strong>
+				</p>
+			</div>
+			<div class="formkit-image">
+				<img alt="WWDC 2021 Viewing Guide" src="/assets/images/wwdc2021.png" width="550" height="420"> 
+			</div>
+		</div>
+		<div data-element="column" class="formkit-column">
+			<ul class="formkit-alert formkit-alert-error" data-element="errors" data-group="alert"></ul>
+			<div data-element="fields" class="seva-fields formkit-fields">
+				<div class="formkit-field">
+					<input class="formkit-input" aria-label="Your first name" name="fields[first_name]" placeholder="Your first name" type="text">
+				</div>
+				<div class="formkit-field">
+					<input class="formkit-input" aria-label="Your email address" name="email_address" placeholder="Your email address" required="" type="email">
+				</div>
+				<button data-element="submit" class="formkit-submit formkit-submit">
+          <div class="formkit-spinner"><div></div><div></div><div></div>
+          </div>
+          <span>Subscribe</span></button>
+			</div>
+			<div data-element="guarantee" class="formkit-guarantee">
+				<p>Unsubscribe at any time. See <a href="/privacy">privacy policy</a>.</p>
+			</div>
+		</div>
+	</div>
+</form>
+
+</div>
+</article>
+</main>
+<footer class="main-footer">
+<div class="small-print">
+<p>Copyright &copy; 2010-2021 Keith Harrison<br />
+<a href="/privacy/">Privacy</a> | <a href="/cookies/">Cookies</a> | <a href="/terms/">Terms of Use</a> | <a href="/about/">About</a>
+</p>
+<a href="https://twitter.com/kharrison" rel="me" title="Follow on Twitter"><i class="fab fa-twitter-square fa-3x"></i></a>
+<a href="https://github.com/kharrison" rel="me" title="Follow on GitHub"><i class="fab fa-github-square fa-3x"></i></a>
+<a href="/blog/rss.xml" type="application/rss+xml" title="Subscribe via RSS"><i class="fas fa-rss-square fa-3x"></i></a>
+</div>
+</footer></body>
+</html>
