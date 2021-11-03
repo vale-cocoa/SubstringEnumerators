@@ -73,9 +73,9 @@ extension StringProtocol {
         else { return }
         
         switch enumerator {
-        case .KMP: try _enumerateOccurenciesWithDFA(of: pattern, range: r, body)
-        case .BM: try _enumerateOccurenciesWithBoyerMoore(of: pattern, range: r, body)
-        case .RK: try _enumerateOccurenciesWithRabinKarp(of: pattern, range: r, body)
+        case .KMP: try _knuttMorrisPratt(of: pattern, range: r, body)
+        case .BM: try _boyerMoore(of: pattern, range: r, body)
+        case .RK: try _rabinKarp(of: pattern, range: r, body)
         }
     }
     
@@ -84,7 +84,7 @@ extension StringProtocol {
 // Private helpers
 extension StringProtocol {
     @inline(__always)
-    fileprivate func _enumerateOccurenciesWithDFA<S: StringProtocol>(of pattern: S, range: Range<Index>, _ body: (Range<Index>, inout Bool) throws -> Void) rethrows {
+    fileprivate func _knuttMorrisPratt<S: StringProtocol>(of pattern: S, range: Range<Index>, _ body: (Range<Index>, inout Bool) throws -> Void) rethrows {
         var dfa = DFA(pattern)
         var stop = false
         var idx = range.lowerBound
@@ -102,7 +102,7 @@ extension StringProtocol {
     }
     
     @inline(__always)
-    fileprivate func _enumerateOccurenciesWithBoyerMoore<S: StringProtocol>(of pattern: S, range: Range<Index>, _ body: (Range<Index>, inout Bool) throws -> Void) rethrows {
+    fileprivate func _boyerMoore<S: StringProtocol>(of pattern: S, range: Range<Index>, _ body: (Range<Index>, inout Bool) throws -> Void) rethrows {
         let right = Dictionary(pattern.enumerated().map({ ($0.element, $0.offset) }), uniquingKeysWith: { $1 })
         let limit = index(range.upperBound, offsetBy: -pattern.count)
         var i = range.lowerBound
@@ -132,41 +132,18 @@ extension StringProtocol {
     }
     
     @inline(__always)
-    fileprivate func _enumerateOccurenciesWithRabinKarp<S: StringProtocol>(of pattern: S, range: Range<Index>, _ body: (Range<Index>, inout Bool) throws -> Void) rethrows {
-        let pH1 = RabinKarpHasher(pattern.utf8, range: pattern.startIndex..., q: _q1)
-        let pH2 = RabinKarpHasher(pattern.utf8, range: pattern.startIndex..., q: _q2)
-        let lo = range.lowerBound
+    fileprivate func _rabinKarp<S: StringProtocol>(of pattern: S, range: Range<Index>, _ body: (Range<Index>, inout Bool) throws -> Void) rethrows {
+        let patternRK = DoubleRollingHasher(pattern, range: pattern.startIndex...)
         let hi = utf8.index(range.lowerBound, offsetBy: pattern.utf8.count)
-        var r = lo..<hi
+        var rk = DoubleRollingHasher(self, range: range.lowerBound..<hi)
         var stop = false
-        var chunkH1 = RabinKarpHasher(utf8, range: r, q: _q1)
-        var chunkH2 = RabinKarpHasher(utf8, range: r, q: _q2)
         repeat {
-            if
-                chunkH1.rollingHashValue == pH1.rollingHashValue,
-                chunkH2.rollingHashValue == pH2.rollingHashValue
-            {
+            let r = rk.actualRange
+            if patternRK.hasSameHash(of: rk) {
                 try body(r, &stop)
             }
-            guard
-                !stop,
-                r.upperBound < range.upperBound
-            else { return }
-            
-            chunkH1.rollHashValue()
-            chunkH2.rollHashValue()
-            r = chunkH1.range
-        } while true
+        } while !stop && rk.actualRange.upperBound < range.upperBound && rk.rollHashValue()
     }
     
 }
 
-fileprivate let (_q1, _q2): (Int, Int) = {
-    let q1 = LargePrimes.randomLargePrime()
-    var q2 = LargePrimes.randomLargePrime()
-    while q1 == q2 {
-        q2 = LargePrimes.randomLargePrime()
-    }
-    
-    return (q1, q2)
-}()
