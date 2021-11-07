@@ -69,6 +69,7 @@ extension StringProtocol {
     public func enumerateRanges<S: StringProtocol, R: RangeExpression>(of pattern: S, in range: R, adopting enumerator: SubstringEnumerator, _ body: (_ rangeOfSubstring: Range<Index>, _ stop: inout Bool) throws -> Void) rethrows where R.Bound == Index {
         let r = range.relative(to: self)
         guard
+            !pattern.isEmpty,
             distance(from: r.lowerBound, to: r.upperBound) >= pattern.count
         else { return }
         
@@ -83,6 +84,7 @@ extension StringProtocol {
 
 // Private helpers
 extension StringProtocol {
+    // KMP adopts a DFA generated at call site on the pattern.
     @inline(__always)
     fileprivate func _knuttMorrisPratt<S: StringProtocol>(of pattern: S, range: Range<Index>, _ body: (Range<Index>, inout Bool) throws -> Void) rethrows {
         var dfa = DFA(pattern)
@@ -101,6 +103,8 @@ extension StringProtocol {
         }
     }
     
+    // Boyer-Moore has to generate its "right" structure at call site on the
+    // pattern, and then moves on the text skipping accordingly.
     @inline(__always)
     fileprivate func _boyerMoore<S: StringProtocol>(of pattern: S, range: Range<Index>, _ body: (Range<Index>, inout Bool) throws -> Void) rethrows {
         let right = Dictionary(pattern.enumerated().map({ ($0.element, $0.offset) }), uniquingKeysWith: { $1 })
@@ -124,13 +128,14 @@ extension StringProtocol {
             if skip == 0 {
                 let upper = index(i, offsetBy: pattern.count)
                 try body(i..<upper, &stop)
-                guard !stop else { return }
-                
                 skip = 1
             }
-        } while formIndex(&i, offsetBy: skip, limitedBy: limit)
+        } while !stop && formIndex(&i, offsetBy: skip, limitedBy: limit)
     }
     
+    // Rabin-Karp adopts rolling hashes, one for the patter which is constant,
+    // and another one on the portion of the text with the same length of the pattern.
+    // It then rolls such hash as it progresses on the text.
     @inline(__always)
     fileprivate func _rabinKarp<S: StringProtocol>(of pattern: S, range: Range<Index>, _ body: (Range<Index>, inout Bool) throws -> Void) rethrows {
         let patternRK = DoubleRollingHasher(pattern, range: pattern.startIndex...)

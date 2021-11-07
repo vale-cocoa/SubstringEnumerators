@@ -21,6 +21,17 @@
 import Foundation
 import RabinKarpHasher
 
+// We use a double Rabin-Karp hasher with different
+// modulo values of 10⁹ magnitude: this effectively lowers the
+// possibility of hash collisions to a 10⁻⁶ chance, hence making
+// reliable the Montecarlo implementation (just comparing the rolling hashes
+// without having to also check for equality the found substring
+// against the pattern).
+// Moreover this helper also just checks the rolling hash values, since
+// it is used privately with two pre-defined modulo values randomly generated
+// and valid for the whole running time of the application, working on
+// the same length of bytes (therefore reminder values are also guaranteed to be the
+// same when comparing).
 struct DoubleRollingHasher<S: StringProtocol> {
     fileprivate var _h1: RabinKarpHasher<S.UTF8View>
     
@@ -47,6 +58,8 @@ struct DoubleRollingHasher<S: StringProtocol> {
     
 }
 
+// These two different modulo values are randomly generated once at runtime
+// and are kept the same during the runtime of the application.
 fileprivate let (_q1, _q2): (Int, Int) = {
     let q1 = LargePrimes.randomLargePrime()
     var q2 = LargePrimes.randomLargePrime()
