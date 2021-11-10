@@ -47,4 +47,11 @@ public enum SubstringEnumerator: CaseIterable {
     ///             only on hash values comparisons as per its *Montecarlo* implementation.
     case RK
     
+    /// Rabin-Karp fingerprint algorithm, *Las Vegas* version
+    ///
+    /// - Complexity:   This algorithm has O(7*n* + 2*m*) complexity,
+    ///                 where *n* is the length of the string where a substring is searched,
+    ///                 and *m* is the length of the substring to search.
+    case RKLasVegas
+    
 }

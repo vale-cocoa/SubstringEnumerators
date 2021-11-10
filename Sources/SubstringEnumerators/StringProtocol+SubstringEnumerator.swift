@@ -77,6 +77,7 @@ extension StringProtocol {
         case .KMP: try _knuttMorrisPratt(of: pattern, range: r, body)
         case .BM: try _boyerMoore(of: pattern, range: r, body)
         case .RK: try _rabinKarp(of: pattern, range: r, body)
+        case .RKLasVegas: try _rabinKarpLasVegas(of: pattern, range: r, body)
         }
     }
     
@@ -148,6 +149,22 @@ extension StringProtocol {
                 try body(r, &stop)
             }
         } while !stop && rk.actualRange.upperBound < range.upperBound && rk.rollHashValue()
+    }
+    
+    @inline(__always)
+    fileprivate func _rabinKarpLasVegas<S: StringProtocol>(of pattern: S, range: Range<Index>, _ body: (Range<Index>, inout Bool) throws -> Void) rethrows {
+        let patternRK = RabinKarpHasher(pattern.utf8, range: pattern.startIndex..., q: 997)
+        let hi = utf8.index(range.lowerBound, offsetBy: pattern.utf8.count)
+        var rk = RabinKarpHasher(utf8, range: range.lowerBound..<hi, q: 997)
+        var stop = false
+        repeat {
+            if
+                patternRK.rollingHashValue == rk.rollingHashValue,
+                self[rk.range].elementsEqual(pattern)
+            {
+                try body(rk.range, &stop)
+            }
+        } while !stop && rk.range.upperBound < range.upperBound && rk.rollHashValue()
     }
     
 }

@@ -45,6 +45,10 @@ final class PerformanceTests: XCTestCase {
         super.tearDown()
     }
     
+    // The native version is now outperforming other algorithms,
+    // I don't know why.
+    // This is happening after I've update to macOS Monterey.
+    // Thus none of these algorithms makes sense to be used at this point. 
     func testPerformanceSwiftNative() {
         measure {
             result.removeAll(keepingCapacity: true)
@@ -81,14 +85,22 @@ final class PerformanceTests: XCTestCase {
         }
     }
     
-    // There is a perfomance problem with Rabin-Karp algorithm,
-    // I have to yet understand if it is caused by using that DoubleRollingHasher
-    // struct or if it is the random generation of the two modulo values clogging
-    // the tests.
+    // There is a perfomance problem with Rabin-Karp algorithms,
+    // I have to yet understand what is causing it.
     func testPerformanceOfRK() {
         measure {
             result.removeAll(keepingCapacity: true)
             text.enumerateRanges(of: pattern, adopting: .RK, { r, _ in
+                result.append(text[r])
+            })
+            XCTAssertEqual(result.count, expectedCount)
+        }
+    }
+    
+    func testPerformanceOfRKLasVegas() {
+        measure {
+            result.removeAll(keepingCapacity: true)
+            text.enumerateRanges(of: pattern, adopting: .RKLasVegas, { r, _ in
                 result.append(text[r])
             })
             XCTAssertEqual(result.count, expectedCount)
